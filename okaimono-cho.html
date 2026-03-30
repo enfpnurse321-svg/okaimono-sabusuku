@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="おかいもの帳">
+  <meta name="theme-color" content="#0d9488">
+  <title>おかいもの帳</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230d9488' width='180' height='180' rx='36'/><text x='90' y='118' font-size='96' text-anchor='middle'>🛒</text></svg>">
+  <style>
+/* ── Reset ── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Hiragino Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;max-width:430px;margin:0 auto;transition:background .3s,color .3s}
+
+/* ── Tokens ── */
+:root{
+  --red:#dc2626;--red-bg:#fef2f2;--red-bdr:#fca5a5;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-bdr:#fcd34d;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-bdr:#93c5fd;
+  --green:#059669;--green-bg:#ecfdf5;
+  --primary:#0d9488;--primary-lt:#ccfbf1;--primary-dk:#0f766e;
+  --bg:#f0f4f8;--card:#ffffff;--bdr:#e2e8f0;
+  --txt:#1e293b;--txt2:#64748b;--txt3:#94a3b8;
+  --shadow:0 1px 5px rgba(0,0,0,.09);
+  --r:12px;--rs:8px;--tab-h:68px
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--card:#1e293b;--bdr:#334155;
+  --txt:#f1f5f9;--txt2:#94a3b8;--txt3:#64748b;
+  --primary-lt:#134e4a;
+  --red-bg:#450a0a;--amber-bg:#431407;--blue-bg:#1e3a8a;--green-bg:#064e3b;
+  --shadow:0 1px 5px rgba(0,0,0,.35)
+}
+
+/* ── Header ── */
+.hdr{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:2.5px solid var(--primary);padding:14px 16px 10px;padding-top:calc(14px + env(safe-area-inset-top))}
+.hrow{display:flex;align-items:center;gap:8px}
+.htitle{font-size:18px;font-weight:700;color:var(--txt);flex:1}
+.hsub{font-size:11px;color:var(--txt2);margin-top:2px}
+.ibtn{background:none;border:none;font-size:17px;cursor:pointer;padding:6px 8px;border-radius:var(--rs);color:var(--txt2)}
+.abtn{background:var(--primary);color:white;border:none;border-radius:50%;width:34px;height:34px;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s;line-height:1}
+.abtn:active{transform:scale(.88)}
+
+/* ── Content & Tabs ── */
+.cont{padding:12px;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 12px)}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--card);border-top:1px solid var(--bdr);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100}
+.tab{flex:1;border:none;background:none;cursor:pointer;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.tab .ti{font-size:19px}.tab .tl{font-size:9px;color:var(--txt2);font-weight:500}
+.tab.on .tl{color:var(--primary);font-weight:700}
+.tab.on::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2.5px;background:var(--primary);border-radius:2px 2px 0 0}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:var(--r);border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;transition:transform .1s}
+.btn:active{transform:scale(.96)}
+.bp{background:var(--primary);color:#fff}
+.bo{background:var(--card);color:var(--primary);border:1.5px solid var(--primary)}
+.bd{background:none;color:var(--red);border:1.5px solid var(--red)}
+.bblk{width:100%}
+.btn-sm{padding:8px 14px;border-radius:var(--rs);border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.btn-sm.bp{background:var(--primary);color:#fff}
+.btn-sm.bo{background:var(--card);color:var(--primary);border:1.5px solid var(--primary)}
+.btn-sm.bd{color:var(--red);border:1.5px solid var(--red);background:none}
+
+/* ── Quick Add ── */
+.qa-wrap{background:var(--card);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.qa-inp{width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:15px;font-family:inherit;color:var(--txt);background:var(--bg);outline:none;margin-bottom:8px}
+.qa-inp:focus{border-color:var(--primary)}
+.qa-triage{display:flex;gap:6px;margin-bottom:8px}
+.qa-t{flex:1;padding:8px 2px;border-radius:var(--rs);border:2px solid transparent;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;text-align:center;transition:all .15s}
+.qa-t.r{background:var(--red-bg);color:var(--red)}.qa-t.r.on{border-color:var(--red)}
+.qa-t.y{background:var(--amber-bg);color:var(--amber)}.qa-t.y.on{border-color:var(--amber)}
+.qa-t.b{background:var(--blue-bg);color:var(--blue)}.qa-t.b.on{border-color:var(--blue)}
+.qa-stores{display:flex;flex-wrap:wrap;gap:6px}
+.qa-store{padding:6px 12px;border-radius:100px;border:1.5px solid var(--bdr);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--txt2);font-family:inherit;transition:all .15s}
+.qa-store:active,.qa-store.on{background:var(--primary-lt);border-color:var(--primary);color:var(--primary)}
+.qa-store-none{border-style:dashed}
+.qa-no-store-btn{width:100%;margin-top:8px}
+
+/* ── Shopping List ── */
+.store-sec{margin-bottom:16px}
+.sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:0 2px}
+.sec-hdr-name{font-size:12px;font-weight:700;color:var(--txt2);letter-spacing:.5px;text-transform:uppercase}
+.sec-hdr-cnt{font-size:11px;color:var(--txt2);margin-left:auto;background:var(--bdr);padding:2px 8px;border-radius:100px}
+.si{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:var(--r);padding:11px 12px;margin-bottom:7px;box-shadow:var(--shadow);border-left:4px solid transparent}
+.si.r{border-left-color:var(--red)}.si.y{border-left-color:var(--amber)}.si.b{border-left-color:var(--blue)}
+.si.done{opacity:.42;border-left-color:var(--bdr)}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr);background:var(--card);flex-shrink:0;cursor:pointer;transition:all .18s;position:relative}
+.chk.on{background:var(--primary);border-color:var(--primary)}
+.chk.on::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:13px;font-weight:700}
+.si-info{flex:1;min-width:0}
+.si-name{font-size:15px;font-weight:500}.si-name.x{text-decoration:line-through;color:var(--txt2)}
+.si-meta{font-size:12px;color:var(--txt2);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.store-tag{background:none;border:1px solid var(--bdr);border-radius:100px;padding:2px 8px;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit}
+.store-tag:active{border-color:var(--primary);color:var(--primary)}
+.dat-tag{font-size:11px;color:var(--txt3)}
+.rm-btn{background:none;border:none;font-size:20px;color:var(--bdr);cursor:pointer;flex-shrink:0;padding:4px;line-height:1}
+.rm-btn:active{color:var(--red)}
+/* ── Shop item info tap ── */
+.si-info{cursor:pointer}
+.si-info:active{opacity:.7}
+/* ── Subscription triage colors ── */
+.sub-card.r{border-left-color:var(--red)}
+.sub-card.y{border-left-color:var(--amber)}
+.sub-card.b{border-left-color:var(--blue)}
+.sub-tri-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.sub-tri-badge.r{background:var(--red-bg);color:var(--red)}
+.sub-tri-badge.y{background:var(--amber-bg);color:var(--amber)}
+.sub-tri-badge.b{background:var(--blue-bg);color:var(--blue)}
+/* ── Subscription sort bar ── */
+.sub-sort-bar{display:flex;gap:6px;margin-bottom:12px;align-items:center}
+.sub-sort-lbl{font-size:11px;color:var(--txt3);font-weight:600}
+.sub-sort-btn{padding:5px 10px;border-radius:100px;border:1.5px solid var(--bdr);background:var(--card);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--txt2);transition:all .15s}
+.sub-sort-btn.on{background:var(--primary-lt);border-color:var(--primary);color:var(--primary)}
+/* ── Pay day chip ── */
+.sub-payday{font-size:11px;color:var(--txt2);background:var(--bg);padding:2px 8px;border-radius:100px}
+/* ── Qty counter (list row) ── */
+.qty-ctrl{display:flex;align-items:center;gap:0;flex-shrink:0;background:var(--bg);border-radius:100px;border:1.5px solid var(--bdr);overflow:hidden}
+.qty-btn{background:none;border:none;color:var(--primary);font-size:18px;font-weight:700;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0;line-height:1}
+.qty-btn:active{background:var(--primary-lt)}
+.qty-val{font-size:13px;font-weight:700;color:var(--txt);min-width:28px;text-align:center;line-height:1}
+.qty-unit{font-size:11px;color:var(--txt2);padding-right:8px}
+/* ── Qty row in quick-add ── */
+.qa-qty-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px}
+.qa-qty-label{font-size:12px;font-weight:600;color:var(--txt2)}
+.qa-qty-ctrl{display:flex;align-items:center;gap:0;background:var(--bg);border-radius:100px;border:1.5px solid var(--bdr);overflow:hidden}
+.qa-qty-btn{background:none;border:none;color:var(--primary);font-size:20px;font-weight:700;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1}
+.qa-qty-btn:active{background:var(--primary-lt)}
+.qa-qty-num{font-size:16px;font-weight:700;color:var(--txt);min-width:36px;text-align:center}
+.done-sep{display:flex;align-items:center;font-size:12px;font-weight:700;color:var(--txt2);margin:16px 0 8px;gap:8px}
+.done-sep::before,.done-sep::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.bulk-bar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.bulk-bar .btn-sm{flex:1;min-width:110px}
+.ptotal{display:flex;align-items:center;justify-content:space-between;background:var(--primary-lt);border-radius:var(--r);padding:12px 16px;margin-top:12px}
+.ptlbl{font-size:13px;font-weight:600;color:var(--primary)}.ptval{font-size:20px;font-weight:700;color:var(--primary)}
+
+/* ── Inventory ── */
+.filter-bar{display:flex;gap:6px;margin-bottom:12px}
+.filter-btn{flex:1;padding:9px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--txt2);transition:all .15s}
+.filter-btn.on{background:var(--primary-lt);border-color:var(--primary);color:var(--primary)}
+.inv-sec{margin-bottom:16px}
+.inv-wrap{margin-bottom:7px}
+.inv-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow);cursor:pointer}
+.inv-info{flex:1;min-width:0}
+.inv-name{font-size:15px;font-weight:500}.inv-note{font-size:11px;color:var(--txt2);margin-top:2px}
+.inv-stk{text-align:right;flex-shrink:0}
+.stk-n{font-size:22px;font-weight:700;color:var(--primary);line-height:1.1}.stk-n.low{color:var(--red)}
+.stk-u{font-size:11px;color:var(--txt2)}
+.low-badge{font-size:10px;font-weight:700;color:var(--red);background:var(--red-bg);padding:2px 6px;border-radius:100px;margin-top:2px;display:inline-block}
+.pb-wrap{height:3px;background:var(--bdr);border-radius:2px;margin-top:1px}
+.pb{height:100%;border-radius:2px;background:var(--primary);transition:width .3s}.pb.low{background:var(--red)}
+
+/* ── Subscriptions ── */
+.sub-sum{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dk) 100%);color:#fff;border-radius:var(--r);padding:18px 16px;margin-bottom:16px;text-align:center}
+.sub-sum-main{font-size:28px;font-weight:700;margin-bottom:3px}
+.sub-sum-label{font-size:11px;opacity:.8;margin-bottom:12px}
+.sub-sum-row{display:flex;justify-content:center;gap:24px}
+.sub-sum-item{text-align:center}
+.sub-sum-val{font-size:16px;font-weight:700}
+.sub-sum-key{font-size:10px;opacity:.75;margin-top:2px}
+.sub-sec{margin-bottom:16px}
+.sub-sec-hdr{font-size:12px;font-weight:700;color:var(--txt2);letter-spacing:.4px;margin-bottom:8px;padding:0 2px;display:flex;align-items:center;gap:6px}
+.sub-total-chip{font-size:11px;color:var(--primary);background:var(--primary-lt);padding:2px 8px;border-radius:100px;font-weight:600}
+.sub-card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;border-left:3px solid var(--primary);display:block;width:100%;text-align:left;font-family:inherit}
+.sub-card.inactive{opacity:.42;border-left-color:var(--bdr)}
+.sub-card.cancelling{border-left-color:var(--amber)}
+.sub-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:8px}
+.sub-name{font-size:15px;font-weight:600;color:var(--txt)}
+.sub-amt{font-size:20px;font-weight:700;color:var(--primary);flex-shrink:0}
+.sub-inactive-badge{font-size:10px;font-weight:700;color:var(--txt3);background:var(--bdr);padding:2px 8px;border-radius:100px;display:inline-block;margin-top:2px}
+.sub-bot{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sub-cycle{font-size:12px;color:var(--txt2)}
+.sub-monthly-chip{font-size:12px;background:var(--primary-lt);color:var(--primary);padding:2px 8px;border-radius:100px;font-weight:600}
+.sub-since{font-size:11px;color:var(--txt3)}
+.sub-cancel-dt{font-size:11px;color:var(--amber);font-weight:600}
+
+/* ── Memo Tab ── */
+.subtab-row{display:flex;gap:6px;margin-bottom:14px}
+.subtab-btn{flex:1;padding:9px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--card);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--txt2);transition:all .15s}
+.subtab-btn.on{background:var(--primary-lt);border-color:var(--primary);color:var(--primary)}
+
+/* Gift */
+.gift-card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;display:block;width:100%;text-align:left;font-family:inherit;border:none}
+.gift-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.gift-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px}
+.gift-given{background:var(--red-bg);color:var(--red)}
+.gift-received{background:var(--blue-bg);color:var(--blue)}
+.gift-date{font-size:12px;color:var(--txt2);margin-left:auto}
+.gift-who{font-size:15px;font-weight:600;color:var(--txt);margin-bottom:2px}
+.gift-what{font-size:14px;color:var(--txt)}
+.gift-note{font-size:12px;color:var(--txt2);margin-top:5px;line-height:1.55}
+
+/* Free Memo */
+.memo-add-wrap{background:var(--card);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center}
+.memo-inp{flex:1;padding:9px 12px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:14px;font-family:inherit;color:var(--txt);background:var(--bg);outline:none}
+.memo-inp:focus{border-color:var(--primary)}
+.memo-row{display:flex;align-items:flex-start;gap:10px;background:var(--card);border-radius:var(--r);padding:11px 14px;margin-bottom:7px;box-shadow:var(--shadow)}
+.memo-text{flex:1;font-size:14px;color:var(--txt);line-height:1.55;word-break:break-all}
+.memo-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.memo-date{font-size:11px;color:var(--txt3)}
+
+/* ── Settings ── */
+.settings-sec{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.sec-title{font-size:12px;font-weight:700;color:var(--txt2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tag-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:100px;padding:6px 12px;font-size:13px;color:var(--txt)}
+.tag-del{background:none;border:none;color:var(--txt2);cursor:pointer;font-size:15px;padding:0;line-height:1}
+.tag-del:active{color:var(--red)}
+.tag-add-row{display:flex;gap:8px}
+.tag-add-row .finp{flex:1}
+.tgl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bdr)}
+.tgl-row:last-child{border-bottom:none}
+.tgl-label{font-size:14px;color:var(--txt)}
+.tgl{position:relative;width:50px;height:28px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tslider{position:absolute;inset:0;background:var(--bdr);border-radius:14px;cursor:pointer;transition:background .25s}
+.tslider::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input:checked+.tslider{background:var(--primary)}
+input:checked+.tslider::after{transform:translateX(22px)}
+.version-txt{font-size:12px;color:var(--txt3);text-align:center;margin-top:16px}
+
+/* ── Forms ── */
+.fg{margin-bottom:14px}
+.flbl{font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:5px;display:block;letter-spacing:.3px;text-transform:uppercase}
+.finp,.fsel{width:100%;padding:11px 13px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:15px;font-family:inherit;color:var(--txt);background:var(--card);outline:none}
+.finp:focus,.fsel:focus{border-color:var(--primary)}
+.fta{width:100%;padding:11px 13px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:14px;font-family:inherit;color:var(--txt);background:var(--card);outline:none;resize:none;height:80px}
+.fta:focus{border-color:var(--primary)}
+.frow{display:flex;gap:10px;margin-bottom:14px}.frow .fg{flex:1;margin-bottom:0}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.46);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.overlay.hidden{display:none}
+.modal{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;padding:8px 18px calc(24px + env(safe-area-inset-bottom));animation:up .22s cubic-bezier(.32,.72,0,1)}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mh{width:38px;height:4px;background:var(--bdr);border-radius:2px;margin:10px auto 18px}
+.mt{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--txt)}
+.sadj{display:flex;align-items:center;justify-content:center;gap:22px;padding:16px;background:var(--bg);border-radius:var(--r);margin-bottom:6px}
+.sabtn{width:48px;height:48px;border-radius:50%;border:2px solid var(--primary);background:var(--card);color:var(--primary);font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.saval{font-size:40px;font-weight:700;color:var(--primary);min-width:68px;text-align:center}
+.dacts{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}.dacts .btn{flex:1;min-width:100px}
+.sec-divider{height:1px;background:var(--bdr);margin:16px 0}
+.slbl{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px}
+.no-hist{font-size:13px;color:var(--txt3);text-align:center;padding:12px}
+.hist-list{display:flex;flex-direction:column;gap:6px}
+.phrow{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:var(--rs)}
+.phd{font-size:13px;color:var(--txt2)}.phq{font-size:13px;font-weight:700;color:var(--primary)}
+.past-form{background:var(--bg);border-radius:var(--rs);padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.triage-picker{display:flex;gap:6px;margin-bottom:14px}
+.tri-btn{flex:1;padding:10px 4px;border-radius:var(--rs);border:2px solid transparent;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;text-align:center}
+.tri-r{background:var(--red-bg);color:var(--red)}.tri-r.on{border-color:var(--red)}
+.tri-y{background:var(--amber-bg);color:var(--amber)}.tri-y.on{border-color:var(--amber)}
+.tri-b{background:var(--blue-bg);color:var(--blue)}.tri-b.on{border-color:var(--blue)}
+.type-picker,.cycle-picker{display:flex;gap:6px;margin-bottom:14px}
+.type-btn,.cycle-btn{flex:1;padding:10px;border-radius:var(--rs);border:2px solid var(--bdr);background:var(--bg);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--txt2)}
+.type-given.on{background:var(--red-bg);color:var(--red);border-color:var(--red)}
+.type-received.on{background:var(--blue-bg);color:var(--blue);border-color:var(--blue)}
+.cycle-btn.on{background:var(--primary-lt);color:var(--primary);border-color:var(--primary)}
+
+/* ── Utility ── */
+.empty{text-align:center;padding:52px 24px}
+.e-ico{font-size:52px;margin-bottom:12px}
+.e-title{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:6px}
+.e-txt{font-size:13px;color:var(--txt2);line-height:1.6}
+.toast{position:fixed;bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 12px);left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-weight:500;z-index:300;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
+[data-theme="dark"] .toast{background:var(--primary)}
+  </style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hrow">
+    <div style="flex:1">
+      <div class="htitle" id="ht">おかいもの帳</div>
+      <div class="hsub" id="hs"></div>
+    </div>
+    <button class="abtn" id="ha" onclick="hadd()">＋</button>
+  </div>
+</div>
+
+<div class="cont" id="cont"></div>
+
+<div class="tabs">
+  <button class="tab on" id="tab-s" onclick="go('s')"><span class="ti">🛒</span><span class="tl">買い物</span></button>
+  <button class="tab" id="tab-i" onclick="go('i')"><span class="ti">📦</span><span class="tl">在庫</span></button>
+  <button class="tab" id="tab-u" onclick="go('u')"><span class="ti">💳</span><span class="tl">サブスク</span></button>
+  <button class="tab" id="tab-m" onclick="go('m')"><span class="ti">📝</span><span class="tl">メモ</span></button>
+  <button class="tab" id="tab-c" onclick="go('c')"><span class="ti">⚙️</span><span class="tl">設定</span></button>
+</div>
+
+<div class="overlay hidden" id="ov" onclick="if(event.target===this)cl()">
+  <div class="modal" id="mo"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+const KEY = 'okaimono_v4';
+const DEFAULT_LOCS = ['キッチン','洗面所','リビング','冷凍庫','その他'];
+const DEFAULT_M = [
+  {id:1,name:'牛乳',location:'キッチン',unit:'本',stock:2,min:1,dq:2,price:200,note:'',h:[]},
+  {id:2,name:'卵',location:'キッチン',unit:'パック',stock:1,min:1,dq:1,price:250,note:'',h:[]},
+  {id:3,name:'食パン',location:'冷凍庫',unit:'斤',stock:0,min:1,dq:1,price:180,note:'',h:[]},
+  {id:4,name:'シャンプー',location:'洗面所',unit:'本',stock:1,min:1,dq:1,price:600,note:'',h:[]},
+  {id:5,name:'洗剤',location:'洗面所',unit:'個',stock:2,min:1,dq:1,price:400,note:'',h:[]},
+];
+
+let S = {
+  tab:'s', memoTab:'gift',
+  L:[], M:[], subs:[], gifts:[], memos:[],
+  stores:[], locs:[],
+  cfg:{dark:false, price:true, showLow:false},
+  li:1, mi:50, si:1, gi:1, memi:1
+};
+
+/* ════════════════════════════════
+   UTILS
+════════════════════════════════ */
+const ge = id => document.getElementById(id);
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function dv(cls){return el('div',cls);}
+function mk(cls,txt,fn){const b=el('button',cls,txt);b.type='button';if(fn)b.onclick=fn;return b;}
+function ip(cls,type,ph,v){const i=document.createElement('input');i.className=cls;i.type=type;i.placeholder=ph||'';if(v!=null)i.value=v;return i;}
+function sl(cls,vals,labels,def){
+  const s=document.createElement('select');s.className=cls;
+  vals.forEach((v,i)=>{const o=document.createElement('option');o.value=v;o.textContent=labels[i];if(v===def)o.selected=true;s.appendChild(o);});
+  return s;
+}
+function fg(label){const g=dv('fg');g.appendChild(el('label','flbl',label));return g;}
+function tst(msg){const t=ge('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function fd(iso){if(!iso)return'';const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()}`;}
+function ff(iso){if(!iso)return'';const d=new Date(iso);return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;}
+const DAYS=['日','月','火','水','木','金','土'];
+function td(){const d=new Date();return`${d.getMonth()+1}月${d.getDate()}日（${DAYS[d.getDay()]}）`;}
+function empState(ico,title,txt){const e=dv('empty');e.appendChild(el('div','e-ico',ico));e.appendChild(el('div','e-title',title));e.appendChild(el('div','e-txt',txt));return e;}
+
+/* ════════════════════════════════
+   STORAGE
+════════════════════════════════ */
+function ld(){try{const d=localStorage.getItem(KEY);return d?JSON.parse(d):null;}catch{return null;}}
+function sv(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify({
+      L:S.L,M:S.M,subs:S.subs,gifts:S.gifts,memos:S.memos,
+      stores:S.stores,locs:S.locs,cfg:S.cfg,
+      li:S.li,mi:S.mi,si:S.si,gi:S.gi,memi:S.memi
+    }));
+  }catch{}
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+(function init(){
+  const saved = ld();
+  if(saved){
+    Object.assign(S, saved);
+    if(!S.locs?.length) S.locs = [...DEFAULT_LOCS];
+    if(!S.M?.length) S.M = [...DEFAULT_M];
+    S.subs  = S.subs  || [];
+    S.gifts = S.gifts || [];
+    S.memos = S.memos || [];
+    S.stores = S.stores || [];
+    S.memi  = S.memi  || 1;
+    S.memoTab = S.memoTab || 'gift';
+  } else {
+    S.M = [...DEFAULT_M];
+    S.locs = [...DEFAULT_LOCS];
+  }
+  if(S.cfg.dark) document.documentElement.setAttribute('data-theme','dark');
+})();
+
+/* ════════════════════════════════
+   NAVIGATION
+════════════════════════════════ */
+function go(tab){
+  S.tab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  ge('tab-'+tab)?.classList.add('on');
+  render();
+}
+
+const HDR_CFG = {
+  s: t=>`${t}`,
+  i: ()=>`在庫 ${S.M.filter(i=>i.stock<=i.min).length}件 補充必要`,
+  u: ()=>'固定費を管理',
+  m: ()=>S.memoTab==='gift'?'ギフトログ':'フリーメモ（ネタ帳）',
+  c: ()=>'',
+};
+
+function updateHeader(){
+  const titles = {s:'🛒 買い物',i:'📦 在庫管理',u:'💳 サブスク',m:'📝 メモ',c:'⚙️ 設定'};
+  const subs   = {s:td(),i:HDR_CFG.i(),u:HDR_CFG.u(),m:HDR_CFG.m(),c:''};
+  ge('ht').textContent = titles[S.tab];
+  ge('hs').textContent = subs[S.tab];
+  ge('ha').style.display = S.tab==='c' ? 'none' : '';
+}
+
+function hadd(){
+  const fns = {s:addShopModal, i:addInvModal, u:addSubModal, m:()=>addMemoModal()};
+  fns[S.tab]?.();
+}
+
+function render(){
+  updateHeader();
+  const c = ge('cont');
+  c.innerHTML = '';
+  ({s:rS, i:rI, u:rU, m:rM, c:rC})[S.tab](c);
+}
+
+/* ════════════════════════════════
+   SHOPPING TAB  🛒
+════════════════════════════════ */
+let qaS = {triage:null, store:null, qty:1};
+
+function buildQa(){
+  const wrap = dv('qa-wrap');
+  const inp = ip('qa-inp','text','商品名を入力…');
+  inp.id = 'qa-inp';
+  inp.autocomplete = 'off';
+  inp.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){e.preventDefault(); doQaAdd(inp.value.trim());}
+  });
+  wrap.appendChild(inp);
+
+  // Qty counter row
+  const qrow = dv('qa-qty-row');
+  qrow.appendChild(el('span','qa-qty-label','個数'));
+  const qctrl = dv('qa-qty-ctrl');
+  const qnum = el('span','qa-qty-num','1');
+  const qminus = mk('qa-qty-btn','−',()=>{
+    if(qaS.qty>1){ qaS.qty--; qnum.textContent=qaS.qty; }
+  });
+  const qplus = mk('qa-qty-btn','＋',()=>{
+    qaS.qty++; qnum.textContent=qaS.qty;
+  });
+  qctrl.appendChild(qminus); qctrl.appendChild(qnum); qctrl.appendChild(qplus);
+  qrow.appendChild(qctrl);
+  wrap.appendChild(qrow);
+
+  // Triage buttons
+  const tr = dv('qa-triage');
+  [['r','🔴 今日必須'],['y','🟡 安ければ'],['b','🔵 予備']].forEach(([t,lbl])=>{
+    const b = mk('qa-t '+t, lbl, ()=>{
+      qaS.triage = t;
+      wrap.querySelectorAll('.qa-t').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      if(!S.stores.length) doQaAdd(inp.value.trim());
+    });
+    tr.appendChild(b);
+  });
+  wrap.appendChild(tr);
+
+  // Store buttons
+  if(S.stores.length){
+    const sr = dv('qa-stores');
+    [...S.stores, null].forEach(store=>{
+      const b = mk('qa-store'+(store===null?' qa-store-none':''), store||'店舗なし', ()=>{
+        qaS.store = store;
+        doQaAdd(inp.value.trim());
+      });
+      sr.appendChild(b);
+    });
+    wrap.appendChild(sr);
+  } else {
+    wrap.appendChild(mk('btn bp bblk qa-no-store-btn','リストに追加',()=>doQaAdd(inp.value.trim())));
+  }
+  return wrap;
+}
+
+function doQaAdd(name){
+  if(!name){ tst('商品名を入力してください'); ge('qa-inp')?.focus(); return; }
+  const triage = qaS.triage || 'y';
+  const store  = qaS.store  || null;
+  const m = S.M.find(i=>i.name===name || i.name.includes(name) || name.includes(i.name));
+  const addQty = qaS.qty || 1;
+  const ex = S.L.find(i=>i.mid===(m?.id??null)&&!i.done&&(i.store||null)===store&&i.triage===triage);
+  if(ex){ ex.qty += addQty; }
+  else {
+    S.L.push({id:S.li++, name:m?m.name:name, mid:m?m.id:null,
+      unit:m?m.unit:'個', qty:addQty, triage, store,
+      done:false, dat:null, at:new Date().toISOString()});
+  }
+  sv();
+  ge('qa-inp').value = '';
+  qaS = {triage:null, store:null, qty:1};
+  render();
+  setTimeout(()=>ge('qa-inp')?.focus(), 50);
+  tst(`「${m?m.name:name}」を追加`);
+}
+
+function rS(cont){
+  cont.appendChild(buildQa());
+  if(!S.L.length){
+    cont.appendChild(empState('🛒','リストは空です','商品名を入力してリストに追加しましょう'));
+    return;
+  }
+  const undone = S.L.filter(i=>!i.done);
+  const done   = S.L.filter(i=>i.done);
+  const TRI = ['r','y','b'];
+  const storeOrder = [...S.stores, null];
+
+  storeOrder.forEach(store=>{
+    const items = undone
+      .filter(i=>(i.store||null)===(store||null))
+      .sort((a,b)=>TRI.indexOf(a.triage)-TRI.indexOf(b.triage));
+    if(!items.length) return;
+    const sec = dv('store-sec');
+    const hdr = dv('sec-hdr');
+    hdr.appendChild(el('span','sec-hdr-name', store||'店舗未定'));
+    hdr.appendChild(el('span','sec-hdr-cnt', `${items.length}点`));
+    sec.appendChild(hdr);
+    items.forEach(item=>sec.appendChild(siRow(item)));
+    cont.appendChild(sec);
+  });
+
+  if(S.cfg.price){
+    const t = undone.reduce((s,i)=>{const m=i.mid!=null?S.M.find(m=>m.id===i.mid):null;return s+(m?.price||0)*i.qty;},0);
+    if(t>0){
+      const pt=dv('ptotal');
+      pt.appendChild(el('span','ptlbl','🧾 合計目安'));
+      pt.appendChild(el('span','ptval',`¥${t.toLocaleString()}`));
+      cont.appendChild(pt);
+    }
+  }
+
+  if(done.length){
+    const sep = dv('done-sep');
+    sep.appendChild(el('span',null,`✅ 購入済み ${done.length}件`));
+    cont.appendChild(sep);
+    done.forEach(item=>cont.appendChild(siRow(item)));
+    const bulk = dv('bulk-bar');
+    bulk.appendChild(mk('btn-sm bd','🗑 一括削除',()=>{
+      if(confirm(`購入済みの${done.length}件を削除しますか？`)){
+        S.L=S.L.filter(i=>!i.done); sv(); render();
+      }
+    }));
+    bulk.appendChild(mk('btn-sm bp','✅ 在庫更新して完了',()=>cmplt()));
+    cont.appendChild(bulk);
+  }
+}
+
+function siRow(item){
+  const row = dv('si '+item.triage+(item.done?' done':''));
+  const cb = dv('chk'+(item.done?' on':''));
+  cb.onclick = ()=>tog(item.id);
+  row.appendChild(cb);
+
+  const info = dv('si-info');
+  info.appendChild(el('div','si-name'+(item.done?' x':''), item.name));
+  const meta = dv('si-meta');
+  if(!item.done){
+    // Store tag (tap to change)
+    meta.appendChild(mk('store-tag', item.store||'店舗未定', e=>{e.stopPropagation();changeStoreModal(item);}));
+    // Tap info area → edit modal
+    info.onclick = e=>{ e.stopPropagation(); editShopItemModal(item); };
+  } else {
+    // Done: show qty + purchase date
+    meta.appendChild(el('span',null,`${item.qty}${item.unit}`));
+    if(item.dat) meta.appendChild(el('span','dat-tag',`${fd(item.dat)}購入`));
+  }
+  info.appendChild(meta);
+  row.appendChild(info);
+
+  // Inline qty counter (undone items only)
+  if(!item.done){
+    const qc = dv('qty-ctrl');
+    const qminus = mk('qty-btn','−', e=>{
+      e.stopPropagation();
+      if(item.qty>1){ item.qty--; qval.textContent=item.qty; sv(); }
+    });
+    const qval = el('span','qty-val', String(item.qty));
+    const qunit = el('span','qty-unit', item.unit);
+    const qplus = mk('qty-btn','＋', e=>{
+      e.stopPropagation();
+      item.qty++; qval.textContent=item.qty; sv();
+    });
+    qc.appendChild(qminus); qc.appendChild(qval); qc.appendChild(qunit); qc.appendChild(qplus);
+    row.appendChild(qc);
+  }
+
+  row.appendChild(mk('rm-btn','×', e=>{e.stopPropagation(); S.L=S.L.filter(i=>i.id!==item.id); sv(); render();}));
+  return row;
+}
+
+function editShopItemModal(item){
+  const mc = ge('mo'); mc.innerHTML='';
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt','アイテムを編集'));
+
+  // Name
+  const gn = fg('商品名');
+  const ni = ip('finp','text','',item.name);
+  gn.appendChild(ni); mc.appendChild(gn);
+
+  // Triage
+  mc.appendChild(el('label','flbl','トリアージ'));
+  const tp = dv('triage-picker');
+  const triOpts = [['r','🔴 今日必須'],['y','🟡 安ければ'],['b','🔵 予備']];
+  let curTri = item.triage;
+  triOpts.forEach(([t,lbl])=>{
+    const b = mk('tri-btn tri-'+t, lbl, ()=>{
+      curTri=t; tp.querySelectorAll('.tri-btn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    });
+    if(t===curTri) b.classList.add('on');
+    tp.appendChild(b);
+  });
+  mc.appendChild(tp);
+
+  // Qty
+  mc.appendChild(el('label','flbl','個数'));
+  let curQty = item.qty;
+  const adj = dv('sadj'); const qv = el('div','saval',String(curQty));
+  adj.appendChild(mk('sabtn','−',()=>{if(curQty>1){curQty--;qv.textContent=curQty;}}));
+  adj.appendChild(qv);
+  adj.appendChild(mk('sabtn','＋',()=>{curQty++;qv.textContent=curQty;}));
+  mc.appendChild(adj);
+
+  // Store
+  const gs = fg('お店');
+  const storeVals = ['',...S.stores];
+  const storeLabels = ['店舗未定',...S.stores];
+  const ss = sl('fsel',storeVals,storeLabels,item.store||'');
+  gs.appendChild(ss); mc.appendChild(gs);
+
+  // Unit
+  const gu = fg('単位');
+  const ui = ip('finp','text','',item.unit);
+  gu.appendChild(ui); mc.appendChild(gu);
+
+  const da = dv('dacts');
+  da.appendChild(mk('btn bp','保存',()=>{
+    const name = ni.value.trim();
+    if(!name){ tst('商品名を入力してください'); return; }
+    item.name   = name;
+    item.triage = curTri;
+    item.qty    = curQty;
+    item.store  = ss.value||null;
+    item.unit   = ui.value||item.unit;
+    sv(); cl(); render(); tst('変更しました');
+  }));
+  da.appendChild(mk('btn bd','削除',()=>{
+    if(confirm(`「${item.name}」を削除しますか？`)){
+      S.L=S.L.filter(i=>i.id!==item.id); sv(); cl(); render();
+    }
+  }));
+  mc.appendChild(da);
+  showOv();
+}
+
+function changeStoreModal(item){
+  if(!S.stores.length){ tst('設定からお店を登録してください'); return; }
+  const mc = ge('mo'); mc.innerHTML='';
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt','お店を変更'));
+  [...S.stores, null].forEach(s=>{
+    const b = mk('btn bp bblk', s||'店舗なし（未定）', ()=>{
+      item.store=s; sv(); cl(); render();
+    });
+    b.style.marginBottom='8px';
+    mc.appendChild(b);
+  });
+  showOv();
+}
+
+function tog(id){
+  const item = S.L.find(i=>i.id===id);
+  if(!item) return;
+  item.done = !item.done;
+  item.dat  = item.done ? new Date().toISOString() : null;
+  sv(); render();
+}
+
+function cmplt(){
+  const done = S.L.filter(i=>i.done);
+  const now  = new Date().toISOString();
+  done.forEach(item=>{
+    if(item.mid!=null){
+      const m = S.M.find(m=>m.id===item.mid);
+      if(m){ m.stock+=item.qty; m.h.push({d:now,q:item.qty}); if(m.h.length>30)m.h=m.h.slice(-30); }
+    }
+  });
+  S.L = S.L.filter(i=>!i.done);
+  sv(); tst(`✅ ${done.length}件完了`); render();
+}
+
+function addShopModal(){
+  const mc = ge('mo'); mc.innerHTML='';
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt','買い物リストに追加'));
+  let fd_ = {triage:'y', store:null};
+  const gn = fg('商品名'); const ni = ip('finp','text','例：牛乳'); gn.appendChild(ni); mc.appendChild(gn);
+  mc.appendChild(el('label','flbl','トリアージ'));
+  const tp = dv('triage-picker');
+  [['r','🔴 今日必須'],['y','🟡 安ければ'],['b','🔵 予備']].forEach(([t,lbl])=>{
+    const b = mk('tri-btn tri-'+t, lbl, ()=>{
+      fd_.triage=t; tp.querySelectorAll('.tri-btn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    });
+    if(t===fd_.triage) b.classList.add('on');
+    tp.appendChild(b);
+  });
+  mc.appendChild(tp);
+  if(S.stores.length){
+    const gs = fg('お店');
+    const ss = sl('fsel',['',...S.stores],['店舗未定',...S.stores],'');
+    ss.onchange = ()=>fd_.store = ss.value||null;
+    gs.appendChild(ss); mc.appendChild(gs);
+  }
+  const da = dv('dacts');
+  da.appendChild(mk('btn bp','追加',()=>{
+    const name = ni.value.trim();
+    if(!name){ tst('商品名を入力してください'); return; }
+    const m = S.M.find(i=>i.name===name||i.name.includes(name)||name.includes(i.name));
+    S.L.push({id:S.li++, name:m?m.name:name, mid:m?m.id:null, unit:m?m.unit:'個', qty:1,
+      triage:fd_.triage, store:fd_.store, done:false, dat:null, at:new Date().toISOString()});
+    sv(); cl(); render(); tst(`「${name}」を追加`);
+  }));
+  mc.appendChild(da);
+  showOv(); ni.focus();
+}
+
+/* ════════════════════════════════
+   INVENTORY TAB  📦
+════════════════════════════════ */
+function rI(cont){
+  const fb = dv('filter-bar');
+  fb.appendChild(mk('filter-btn'+(S.cfg.showLow?'':' on'),'📦 全て表示',()=>{S.cfg.showLow=false;sv();render();}));
+  fb.appendChild(mk('filter-btn'+(S.cfg.showLow?' on':''),'🔴 補充が必要なもの',()=>{S.cfg.showLow=true;sv();render();}));
+  cont.appendChild(fb);
+  const locs = S.locs.length ? S.locs : DEFAULT_LOCS;
+  let any = false;
+  locs.forEach(loc=>{
+    let items = S.M.filter(i=>i.location===loc);
+    if(S.cfg.showLow) items = items.filter(i=>i.stock<=i.min);
+    if(!items.length) return;
+    any = true;
+    const sec = dv('inv-sec');
+    const hdr = dv('sec-hdr');
+    hdr.appendChild(el('span','sec-hdr-name', loc));
+    hdr.appendChild(el('span','sec-hdr-cnt', `${items.length}種`));
+    sec.appendChild(hdr);
+    items.forEach(item=>sec.appendChild(invRow(item)));
+    cont.appendChild(sec);
+  });
+  if(!any){
+    if(S.cfg.showLow) cont.appendChild(empState('✅','補充が必要なものはありません','在庫は十分です'));
+    else if(!S.M.length) cont.appendChild(empState('📦','商品が登録されていません','＋ から商品を追加'));
+  }
+}
+
+function invRow(item){
+  const low = item.stock <= item.min;
+  const wrap = dv('inv-wrap');
+  const row = dv('inv-row');
+  row.onclick = ()=>invDetailModal(item.id);
+  const info = dv('inv-info');
+  info.appendChild(el('div','inv-name', item.name));
+  if(item.note) info.appendChild(el('div','inv-note', item.note));
+  row.appendChild(info);
+  const stk = dv('inv-stk');
+  stk.appendChild(el('div','stk-n'+(low?' low':''), String(item.stock)));
+  stk.appendChild(el('div','stk-u', item.unit));
+  if(low) stk.appendChild(el('div','low-badge','要補充'));
+  row.appendChild(stk);
+  wrap.appendChild(row);
+  const max = Math.max(item.min*3, item.stock, 1);
+  const pct = Math.min(100, Math.round(item.stock/max*100));
+  const pw = dv('pb-wrap'); const pb = dv('pb'+(low?' low':'')); pb.style.width=pct+'%'; pw.appendChild(pb);
+  wrap.appendChild(pw);
+  return wrap;
+}
+
+function addInvModal(){
+  const mc = ge('mo'); mc.innerHTML='';
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt','在庫を追加'));
+  const cur = {name:'', location:S.locs[0]||'キッチン', unit:'個', stock:1, min:1, dq:1, price:0, note:''};
+  const gn = fg('商品名'); const ni = ip('finp','text','例：牛乳'); ni.oninput=()=>cur.name=ni.value; gn.appendChild(ni); mc.appendChild(gn);
+  const gl = fg('場所'); const ls = sl('fsel',S.locs,S.locs,cur.location); ls.onchange=()=>cur.location=ls.value; gl.appendChild(ls); mc.appendChild(gl);
+  const r1 = dv('frow');
+  const gu = fg('単位'); const ui = ip('finp','text','本・個・袋…','個'); ui.oninput=()=>cur.unit=ui.value; gu.appendChild(ui);
+  const gp = fg('価格 ¥'); const pi = ip('finp','number','0','0'); pi.oninput=()=>cur.price=parseInt(pi.value)||0; gp.appendChild(pi);
+  r1.appendChild(gu); r1.appendChild(gp); mc.appendChild(r1);
+  const da = dv('dacts');
+  da.appendChild(mk('btn bp','追加',()=>{
+    if(!cur.name.trim()){ tst('商品名を入力してください'); return; }
+    S.M.push({id:S.mi++, ...cur, name:cur.name.trim(), h:[]});
+    sv(); cl(); render(); tst(`「${cur.name}」を登録`);
+  }));
+  mc.appendChild(da);
+  showOv(); ni.focus();
+}
+
+function invDetailModal(itemId){
+  const mc = ge('mo'); mc.innerHTML='';
+  const item = S.M.find(i=>i.id===itemId);
+  if(!item) return;
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt', item.name));
+  const cur = {name:item.name,location:item.location,unit:item.unit,stock:item.stock,min:item.min,dq:item.dq,price:item.price,note:item.note};
+  const gn = fg('商品名'); const ni = ip('finp','text','',item.name); ni.oninput=()=>cur.name=ni.value; gn.appendChild(ni); mc.appendChild(gn);
+  const gl = fg('場所'); const ls = sl('fsel',S.locs,S.locs,item.location); ls.onchange=()=>cur.location=ls.value; gl.appendChild(ls); mc.appendChild(gl);
+  mc.appendChild(el('label','flbl','現在の在庫数'));
+  let stockVal = item.stock;
+  const adj = dv('sadj'); const sv2 = el('div','saval',String(stockVal));
+  adj.appendChild(mk('sabtn','−',()=>{if(stockVal>0){stockVal--;sv2.textContent=stockVal;cur.stock=stockVal;}}));
+  adj.appendChild(sv2);
+  adj.appendChild(mk('sabtn','＋',()=>{stockVal++;sv2.textContent=stockVal;cur.stock=stockVal;}));
+  mc.appendChild(adj);
+  const r1 = dv('frow');
+  const gm = fg('最少在庫'); const mi = ip('finp','number','',''+item.min); mi.oninput=()=>cur.min=parseInt(mi.value)||1; gm.appendChild(mi);
+  const gd = fg('購入単位数'); const di = ip('finp','number','',''+item.dq); di.oninput=()=>cur.dq=parseInt(di.value)||1; gd.appendChild(di);
+  r1.appendChild(gm); r1.appendChild(gd); mc.appendChild(r1);
+  const r2 = dv('frow');
+  const gu = fg('単位'); const ui = ip('finp','text','',''+item.unit); ui.oninput=()=>cur.unit=ui.value; gu.appendChild(ui);
+  const gp = fg('価格 ¥'); const pp = ip('finp','number','',''+(item.price||0)); pp.oninput=()=>cur.price=parseInt(pp.value)||0; gp.appendChild(pp);
+  r2.appendChild(gu); r2.appendChild(gp); mc.appendChild(r2);
+  const gno = fg('メモ'); const ta = document.createElement('textarea'); ta.className='fta'; ta.value=item.note||''; ta.oninput=()=>cur.note=ta.value; gno.appendChild(ta); mc.appendChild(gno);
+  mc.appendChild(el('div','sec-divider',''));
+  mc.appendChild(el('div','slbl','🕐 購入履歴'));
+  const addPastBtn = mk('btn-sm bo','＋ 過去の購入を記録',()=>{
+    const pf = dv('past-form');
+    const di2 = ip('finp','date','', new Date().toISOString().slice(0,10));
+    const qi2 = ip('finp','number','数量','1'); qi2.min='1';
+    pf.appendChild(di2); pf.appendChild(qi2);
+    pf.appendChild(mk('btn-sm bp','記録',()=>{
+      const q = parseInt(qi2.value)||1;
+      const d = new Date(di2.value+'T12:00:00').toISOString();
+      item.h.push({d,q}); item.h.sort((a,b)=>new Date(a.d)-new Date(b.d));
+      sv(); cl(); invDetailModal(item.id); showOv(); tst('記録しました');
+    }));
+    addPastBtn.replaceWith(pf);
+  });
+  mc.appendChild(addPastBtn);
+  if(!item.h.length){
+    mc.appendChild(el('div','no-hist','まだ購入履歴がありません'));
+  } else {
+    const hl = dv('hist-list');
+    [...item.h].reverse().slice(0,15).forEach(h=>{
+      const r = dv('phrow');
+      r.appendChild(el('span','phd', fd(h.d)+' 購入'));
+      r.appendChild(el('span','phq', `+${h.q} ${item.unit}`));
+      hl.appendChild(r);
+    });
+    mc.appendChild(hl);
+  }
+  const da = dv('dacts');
+  da.appendChild(mk('btn bp','保存',()=>{
+    Object.assign(item,cur); sv(); cl(); render(); tst('保存しました');
+  }));
+  da.appendChild(mk('btn bo','🛒 リストに追加',()=>{
+    cl();
+    addToListWithTriage(item);
+  }));
+  da.appendChild(mk('btn bd','削除',()=>{
+    if(confirm(`「${item.name}」を削除しますか？`)){
+      S.M=S.M.filter(i=>i.id!==itemId); sv(); cl(); render(); tst('削除しました');
+    }
+  }));
+  mc.appendChild(da);
+  showOv();
+}
+
+function addToListWithTriage(invItem){
+  const mc = ge('mo'); mc.innerHTML='';
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt',`「${invItem.name}」をリストに追加`));
+  mc.appendChild(el('div','slbl','トリアージを選んでください'));
+  let curTri = 'y';
+  const tp = dv('triage-picker');
+  [['r','🔴 今日必須'],['y','🟡 安ければ'],['b','🔵 予備']].forEach(([t,lbl])=>{
+    const b = mk('tri-btn tri-'+t, lbl, ()=>{
+      curTri=t; tp.querySelectorAll('.tri-btn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    });
+    if(t===curTri) b.classList.add('on');
+    tp.appendChild(b);
+  });
+  mc.appendChild(tp);
+  // Store selector
+  if(S.stores.length){
+    let curStore = null;
+    const gs = fg('お店');
+    const ss = sl('fsel',['',...S.stores],['店舗未定',...S.stores],'');
+    ss.onchange=()=>curStore=ss.value||null;
+    gs.appendChild(ss); mc.appendChild(gs);
+    const da = dv('dacts');
+    da.appendChild(mk('btn bp','追加',()=>{
+      S.L.push({id:S.li++, name:invItem.name, mid:invItem.id, unit:invItem.unit, qty:invItem.dq,
+        triage:curTri, store:curStore, done:false, dat:null, at:new Date().toISOString()});
+      sv(); cl(); go('s'); tst(`「${invItem.name}」をリストに追加`);
+    }));
+    mc.appendChild(da);
+  } else {
+    const da = dv('dacts');
+    da.appendChild(mk('btn bp','追加',()=>{
+      S.L.push({id:S.li++, name:invItem.name, mid:invItem.id, unit:invItem.unit, qty:invItem.dq,
+        triage:curTri, store:null, done:false, dat:null, at:new Date().toISOString()});
+      sv(); cl(); go('s'); tst(`「${invItem.name}」をリストに追加`);
+    }));
+    mc.appendChild(da);
+  }
+  showOv();
+}
+
+/* ════════════════════════════════
+   SUBSCRIPTIONS TAB  💳
+════════════════════════════════ */
+// subSortMode: 'default' | 'triage'
+let subSortMode = 'default';
+const TRI_SUB_ORDER = ['r','y','b','',undefined,null];
+function sortSubs(arr){
+  if(subSortMode!=='triage') return arr;
+  return [...arr].sort((a,b)=>{
+    const ai=TRI_SUB_ORDER.indexOf(a.triage??''), bi=TRI_SUB_ORDER.indexOf(b.triage??'');
+    return (ai<0?99:ai)-(bi<0?99:bi);
+  });
+}
+function fmtPayDay(sub){
+  if(sub.cycle==='monthly'&&sub.payDay) return `毎月${sub.payDay}日`;
+  if(sub.cycle==='yearly'&&sub.payMonth&&sub.payDay) return `毎年${sub.payMonth}月${sub.payDay}日`;
+  return null;
+}
+
+function rU(cont){
+  const active   = S.subs.filter(s=>s.active!==false);
+  const inactive = S.subs.filter(s=>s.active===false);
+  const monthly  = active.filter(s=>s.cycle==='monthly');
+  const yearly   = active.filter(s=>s.cycle==='yearly');
+  const mTotal   = monthly.reduce((s,i)=>s+i.amount,0);
+  const yTotal   = yearly.reduce((s,i)=>s+i.amount,0);
+  const yMonthly = Math.round(yTotal/12);
+  const grand    = mTotal + yMonthly;
+
+  // Summary banner
+  const sum = dv('sub-sum');
+  sum.appendChild(el('div','sub-sum-main',`¥${grand.toLocaleString()}/月`));
+  sum.appendChild(el('div','sub-sum-label','月換算の固定費合計'));
+  const srow = dv('sub-sum-row');
+  const sm = dv('sub-sum-item');
+  sm.appendChild(el('div','sub-sum-val',`¥${mTotal.toLocaleString()}`));
+  sm.appendChild(el('div','sub-sum-key','月払い'));
+  const sy = dv('sub-sum-item');
+  sy.appendChild(el('div','sub-sum-val',`¥${yTotal.toLocaleString()}`));
+  sy.appendChild(el('div','sub-sum-key',`年払い (月換算 ¥${yMonthly.toLocaleString()})`));
+  srow.appendChild(sm); srow.appendChild(sy); sum.appendChild(srow);
+  cont.appendChild(sum);
+
+  if(!S.subs.length){
+    cont.appendChild(empState('💳','サブスクがありません','＋ から登録しましょう'));
+    return;
+  }
+
+  // Sort bar
+  const sb = dv('sub-sort-bar');
+  sb.appendChild(el('span','sub-sort-lbl','並び替え：'));
+  [['default','登録順'],['triage','満足度順']].forEach(([m,lbl])=>{
+    sb.appendChild(mk('sub-sort-btn'+(subSortMode===m?' on':''),lbl,()=>{ subSortMode=m; render(); }));
+  });
+  cont.appendChild(sb);
+
+  // Monthly section
+  if(monthly.length){
+    const sec = dv('sub-sec');
+    const hdr = dv('sub-sec-hdr');
+    hdr.appendChild(el('span',null,'月払い'));
+    hdr.appendChild(el('span','sub-total-chip',`¥${mTotal.toLocaleString()}/月`));
+    sec.appendChild(hdr);
+    sortSubs(monthly).forEach(s=>sec.appendChild(subCard(s)));
+    cont.appendChild(sec);
+  }
+  // Yearly section
+  if(yearly.length){
+    const sec = dv('sub-sec');
+    const hdr = dv('sub-sec-hdr');
+    hdr.appendChild(el('span',null,'年払い'));
+    hdr.appendChild(el('span','sub-total-chip',`¥${yTotal.toLocaleString()}/年`));
+    sec.appendChild(hdr);
+    sortSubs(yearly).forEach(s=>sec.appendChild(subCard(s)));
+    cont.appendChild(sec);
+  }
+  // Inactive
+  if(inactive.length){
+    const sec = dv('sub-sec');
+    const hdr = dv('sub-sec-hdr');
+    hdr.appendChild(el('span',null,'解約済み・停止中'));
+    sec.appendChild(hdr);
+    inactive.forEach(s=>sec.appendChild(subCard(s)));
+    cont.appendChild(sec);
+  }
+}
+
+function subCard(sub){
+  const tri = sub.triage||'';
+  let cls = 'sub-card';
+  if(tri) cls += ' '+tri;
+  if(sub.active===false) cls += ' inactive';
+  else if(sub.cancelDate) cls += ' cancelling';
+  const card = mk(cls,'',()=>editSubModal(sub));
+  const top = dv('sub-top');
+  const left = dv('');
+  left.appendChild(el('div','sub-name',sub.name));
+  if(sub.active===false) left.appendChild(el('span','sub-inactive-badge','解約済み'));
+  top.appendChild(left);
+  const right = dv(''); right.style.cssText='text-align:right;flex-shrink:0';
+  right.appendChild(el('div','sub-amt',`¥${sub.amount.toLocaleString()}`));
+  if(tri) right.appendChild(el('span','sub-tri-badge '+tri, {r:'🔴 必須',y:'🟡 保留',b:'🔵 解約候補'}[tri]||''));
+  top.appendChild(right);
+  card.appendChild(top);
+  const bot = dv('sub-bot');
+  bot.appendChild(el('span','sub-cycle',sub.cycle==='monthly'?'月払い':'年払い'));
+  if(sub.cycle==='yearly') bot.appendChild(el('span','sub-monthly-chip',`月換算 ¥${Math.round(sub.amount/12).toLocaleString()}`));
+  const pd = fmtPayDay(sub);
+  if(pd) bot.appendChild(el('span','sub-payday',`🗓 ${pd}`));
+  if(sub.startDate)  bot.appendChild(el('span','sub-since',`開始 ${ff(sub.startDate)}`));
+  if(sub.cancelDate) bot.appendChild(el('span','sub-cancel-dt',`解約予定 ${ff(sub.cancelDate)}`));
+  if(sub.note)       bot.appendChild(el('span','sub-since',sub.note));
+  card.appendChild(bot);
+  return card;
+}
+
+function addSubModal(){ editSubModal(null); }
+
+function editSubModal(sub){
+  const mc = ge('mo'); mc.innerHTML='';
+  const isNew = !sub;
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt', isNew?'サブスクを追加':'サブスクを編集'));
+  const fd_ = {
+    name:       sub?.name       || '',
+    amount:     sub?.amount     || 0,
+    cycle:      sub?.cycle      || 'monthly',
+    triage:     sub?.triage     || '',
+    payDay:     sub?.payDay     || '',
+    payMonth:   sub?.payMonth   || '',
+    startDate:  sub?.startDate  || '',
+    cancelDate: sub?.cancelDate || '',
+    active:     sub?.active     !== false,
+    note:       sub?.note       || ''
+  };
+  const gn = fg('サービス名'); const ni = ip('finp','text','例：Netflix',fd_.name); ni.oninput=()=>fd_.name=ni.value; gn.appendChild(ni); mc.appendChild(gn);
+  const ga = fg('金額 ¥'); const ai = ip('finp','number','0',''+fd_.amount); ai.oninput=()=>fd_.amount=parseInt(ai.value)||0; ga.appendChild(ai); mc.appendChild(ga);
+
+  // Satisfaction triage
+  mc.appendChild(el('label','flbl','満足度トリアージ'));
+  const tp = dv('triage-picker');
+  [['r','🔴 必須'],['y','🟡 保留中'],['b','🔵 解約候補'],['','未設定']].forEach(([t,lbl])=>{
+    const b = mk('tri-btn'+(t?' tri-'+t:''), lbl, ()=>{
+      fd_.triage=t; tp.querySelectorAll('.tri-btn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    });
+    if(t===fd_.triage) b.classList.add('on');
+    tp.appendChild(b);
+  });
+  mc.appendChild(tp);
+
+  // Cycle
+  mc.appendChild(el('label','flbl','支払いサイクル'));
+  const cp = dv('cycle-picker');
+  const pdWrap = dv('');
+  function updatePayDayRow(){
+    pdWrap.innerHTML='';
+    if(fd_.cycle==='monthly'){
+      const gr = dv('frow');
+      const gd = fg('支払日（毎月）');
+      const di = ip('finp','number','例：25',''+fd_.payDay); di.min='1'; di.max='31';
+      di.oninput=()=>fd_.payDay=di.value; gd.appendChild(di); gr.appendChild(gd); pdWrap.appendChild(gr);
+    } else {
+      const gr = dv('frow');
+      const gm = fg('支払月'); const mi = ip('finp','number','月',''+fd_.payMonth); mi.min='1'; mi.max='12'; mi.oninput=()=>fd_.payMonth=mi.value; gm.appendChild(mi);
+      const gd = fg('支払日'); const di = ip('finp','number','日',''+fd_.payDay); di.min='1'; di.max='31'; di.oninput=()=>fd_.payDay=di.value; gd.appendChild(di);
+      gr.appendChild(gm); gr.appendChild(gd); pdWrap.appendChild(gr);
+    }
+  }
+  [['monthly','月払い'],['yearly','年払い']].forEach(([c,lbl])=>{
+    const b = mk('cycle-btn',lbl,()=>{
+      fd_.cycle=c; cp.querySelectorAll('.cycle-btn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+      updatePayDayRow();
+    });
+    if(c===fd_.cycle) b.classList.add('on');
+    cp.appendChild(b);
+  });
+  mc.appendChild(cp);
+  mc.appendChild(pdWrap);
+  updatePayDayRow();
+
+  const dr = dv('frow');
+  const gs = fg('開始日'); const si_ = ip('finp','date','',fd_.startDate?fd_.startDate.slice(0,10):'');
+  si_.oninput=()=>fd_.startDate=si_.value?new Date(si_.value+'T12:00:00').toISOString():'';
+  gs.appendChild(si_);
+  const gc = fg('解約日（予定）'); const ci = ip('finp','date','',fd_.cancelDate?fd_.cancelDate.slice(0,10):'');
+  ci.oninput=()=>fd_.cancelDate=ci.value?new Date(ci.value+'T12:00:00').toISOString():'';
+  gc.appendChild(ci);
+  dr.appendChild(gs); dr.appendChild(gc); mc.appendChild(dr);
+
+  const gno = fg('メモ'); const ta = document.createElement('textarea'); ta.className='fta'; ta.value=fd_.note; ta.oninput=()=>fd_.note=ta.value; gno.appendChild(ta); mc.appendChild(gno);
+  if(!isNew){
+    const trow = dv('tgl-row');
+    trow.appendChild(el('span','tgl-label','有効'));
+    const tgl = document.createElement('label'); tgl.className='tgl';
+    const tInp = document.createElement('input'); tInp.type='checkbox'; tInp.checked=fd_.active;
+    tInp.onchange=()=>fd_.active=tInp.checked;
+    tgl.appendChild(tInp); tgl.appendChild(el('span','tslider')); trow.appendChild(tgl);
+    mc.appendChild(trow);
+  }
+  const da = dv('dacts');
+  da.appendChild(mk('btn bp', isNew?'追加':'保存', ()=>{
+    if(!fd_.name.trim()){ tst('サービス名を入力してください'); return; }
+    if(isNew){ S.subs.push({id:S.si++, ...fd_}); }
+    else { Object.assign(sub,fd_); }
+    sv(); cl(); render(); tst(isNew?'追加しました':'保存しました');
+  }));
+  if(!isNew){
+    da.appendChild(mk('btn bd','削除',()=>{
+      if(confirm(`「${sub.name}」を削除しますか？`)){ S.subs=S.subs.filter(s=>s.id!==sub.id); sv(); cl(); render(); tst('削除しました'); }
+    }));
+  }
+  mc.appendChild(da);
+  showOv();
+  if(isNew) ni.focus();
+}
+
+/* ════════════════════════════════
+   MEMO TAB  📝  (Gift + Free)
+════════════════════════════════ */
+function rM(cont){
+  const stb = dv('subtab-row');
+  [['gift','🎁 ギフトログ'],['free','📝 フリーメモ']].forEach(([t,lbl])=>{
+    stb.appendChild(mk('subtab-btn'+(S.memoTab===t?' on':''),lbl,()=>{
+      S.memoTab=t; sv(); render();
+    }));
+  });
+  cont.appendChild(stb);
+  if(S.memoTab==='gift') rGift(cont);
+  else rFree(cont);
+}
+
+/* ── Gift Log ── */
+function rGift(cont){
+  if(!S.gifts.length){
+    cont.appendChild(empState('🎁','ギフトログがありません','＋ からエピソードを追加'));
+    return;
+  }
+  [...S.gifts].reverse().forEach(g=>cont.appendChild(giftCard(g)));
+}
+
+function giftCard(g){
+  const card = mk('gift-card','',()=>editGiftModal(g));
+  const top = dv('gift-top');
+  top.appendChild(el('span','gift-badge '+(g.type==='given'?'gift-given':'gift-received'), g.type==='given'?'あげた':'もらった'));
+  top.appendChild(el('span','gift-date', ff(g.date)));
+  card.appendChild(top);
+  card.appendChild(el('div','gift-who', g.person));
+  card.appendChild(el('div','gift-what', g.item));
+  if(g.note) card.appendChild(el('div','gift-note', g.note));
+  return card;
+}
+
+function editGiftModal(g){
+  const mc = ge('mo'); mc.innerHTML='';
+  const isNew = !g;
+  mc.appendChild(dv('mh'));
+  mc.appendChild(el('div','mt', isNew?'ギフトを記録':'ギフトを編集'));
+  const fd_ = {
+    type:   g?.type   || 'given',
+    date:   g?.date   || new Date().toISOString(),
+    person: g?.person || '',
+    item:   g?.item   || '',
+    note:   g?.note   || ''
+  };
+  mc.appendChild(el('label','flbl','種類'));
+  const tp = dv('type-picker');
+  [['given','🎁 あげた'],['received','📦 もらった']].forEach(([t,lbl])=>{
+    const b = mk('type-btn type-'+t, lbl, ()=>{
+      fd_.type=t; tp.querySelectorAll('.type-btn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    });
+    if(t===fd_.type) b.classList.add('on');
+    tp.appendChild(b);
+  });
+  mc.appendChild(tp);
+  const gd = fg('日付'); const di = ip('finp','date','',fd_.date?fd_.date.slice(0,10):'');
+  di.oninput=()=>fd_.date=new Date(di.value+'T12:00:00').toISOString(); gd.appendChild(di); mc.appendChild(gd);
+  const gp = fg('相手'); const pi_ = ip('finp','text','名前…',fd_.person); pi_.oninput=()=>fd_.person=pi_.value; gp.appendChild(pi_); mc.appendChild(gp);
+  const gi = fg('品物・内容'); const ii = ip('finp','text','何を…',fd_.item); ii.oninput=()=>fd_.item=ii.value; gi.appendChild(ii); mc.appendChild(gi);
+  const gno = fg('エピソード・メモ'); const ta = document.createElement('textarea'); ta.className='fta'; ta.value=fd_.note; ta.oninput=()=>fd_.note=ta.value; gno.appendChild(ta); mc.appendChild(gno);
+  const da = dv('dacts');
+  da.appendChild(mk('btn bp', isNew?'記録':'保存', ()=>{
+    if(!fd_.person.trim()||!fd_.item.trim()){ tst('相手と品物を入力してください'); return; }
+    if(isNew){ S.gifts.unshift({id:S.gi++, ...fd_}); }
+    else { Object.assign(g,fd_); }
+    sv(); cl(); render(); tst(isNew?'記録しました':'保存しました');
+  }));
+  if(!isNew){
+    da.appendChild(mk('btn bd','削除',()=>{
+      if(confirm('このギフトログを削除しますか？')){ S.gifts=S.gifts.filter(x=>x.id!==g.id); sv(); cl(); render(); }
+    }));
+  }
+  mc.appendChild(da);
+  showOv();
+}
+
+/* ── Free Memo ── */
+function rFree(cont){
+  const wrap = dv('memo-add-wrap');
+  const inp = ip('memo-inp','text','アイデア・ネタ・メモを一言…');
+  inp.id = 'memo-inp';
+  function doAdd(){
+    const txt = inp.value.trim();
+    if(!txt) return;
+    S.memos.unshift({id:S.memi++, text:txt, at:new Date().toISOString()});
+    sv(); render(); tst('メモを追加');
+  }
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){e.preventDefault();doAdd();} });
+  wrap.appendChild(inp);
+  wrap.appendChild(mk('btn-sm bp','追加',doAdd));
+  cont.appendChild(wrap);
+  if(!S.memos.length){
+    cont.appendChild(empState('📝','メモがありません','noteのネタ、キャリアのアイデアなど\n気づいたことを書き留めましょう'));
+    return;
+  }
+  S.memos.forEach(m=>{
+    const row = dv('memo-row');
+    row.appendChild(el('div','memo-text', m.text));
+    const meta = dv('memo-meta');
+    meta.appendChild(el('div','memo-date', fd(m.at)));
+    meta.appendChild(mk('rm-btn','×', e=>{
+      e.stopPropagation(); S.memos=S.memos.filter(x=>x.id!==m.id); sv(); render();
+    }));
+    row.appendChild(meta);
+    cont.appendChild(row);
+  });
+}
+
+function addMemoModal(){
+  if(S.memoTab==='gift') editGiftModal(null);
+  else setTimeout(()=>ge('memo-inp')?.focus(), 50);
+}
+
+/* ════════════════════════════════
+   SETTINGS TAB  ⚙️
+════════════════════════════════ */
+function rC(cont){
+  // ── Stores
+  const ss = dv('settings-sec');
+  ss.appendChild(el('div','sec-title','🏪 お店'));
+  const stl = dv('tag-list');
+  (S.stores.length ? S.stores : []).forEach(s=>{
+    const chip = dv('tag-chip');
+    chip.appendChild(el('span',null,s));
+    chip.appendChild(mk('tag-del','✕',()=>{ S.stores=S.stores.filter(x=>x!==s); sv(); render(); }));
+    stl.appendChild(chip);
+  });
+  if(!S.stores.length){ const hint=el('div',null,'まだ登録されていません'); hint.style.cssText='font-size:12px;color:var(--txt3);margin-bottom:8px'; ss.appendChild(hint); }
+  ss.appendChild(stl);
+  const sar = dv('tag-add-row'); const si_ = ip('finp','text','例：イオン、コストコ');
+  sar.appendChild(si_);
+  sar.appendChild(mk('btn-sm bp','追加',()=>{
+    const v=si_.value.trim(); if(!v||S.stores.includes(v)){tst('入力してください');return;}
+    S.stores.push(v); sv(); render();
+  }));
+  ss.appendChild(sar);
+  cont.appendChild(ss);
+
+  // ── Locations
+  const ls_ = dv('settings-sec');
+  ls_.appendChild(el('div','sec-title','📍 場所（在庫カテゴリ）'));
+  const ltl = dv('tag-list');
+  S.locs.forEach(l=>{
+    const chip = dv('tag-chip');
+    chip.appendChild(el('span',null,l));
+    chip.appendChild(mk('tag-del','✕',()=>{ S.locs=S.locs.filter(x=>x!==l); sv(); render(); }));
+    ltl.appendChild(chip);
+  });
+  ls_.appendChild(ltl);
+  const lar = dv('tag-add-row'); const li_ = ip('finp','text','例：パントリー、書斎');
+  lar.appendChild(li_);
+  lar.appendChild(mk('btn-sm bp','追加',()=>{
+    const v=li_.value.trim(); if(!v||S.locs.includes(v)){tst('入力してください');return;}
+    S.locs.push(v); sv(); render();
+  }));
+  ls_.appendChild(lar);
+  cont.appendChild(ls_);
+
+  // ── Display settings
+  const cs = dv('settings-sec');
+  cs.appendChild(el('div','sec-title','⚙️ 表示設定'));
+  function tglRow(lbl,key){
+    const row = dv('tgl-row'); row.appendChild(el('span','tgl-label',lbl));
+    const tgl = document.createElement('label'); tgl.className='tgl';
+    const inp = document.createElement('input'); inp.type='checkbox'; inp.checked=S.cfg[key];
+    inp.onchange=()=>{
+      S.cfg[key]=inp.checked;
+      if(key==='dark') document.documentElement.setAttribute('data-theme',inp.checked?'dark':'');
+      sv();
+    };
+    tgl.appendChild(inp); tgl.appendChild(el('span','tslider')); row.appendChild(tgl);
+    cs.appendChild(row);
+  }
+  tglRow('ダークモード 🌙','dark');
+  tglRow('価格合計を表示（買い物タブ）','price');
+  cont.appendChild(cs);
+
+  // ── Data
+  const ds = dv('settings-sec');
+  ds.appendChild(el('div','sec-title','💾 データ管理'));
+  const dbr = dv('bulk-bar');
+  dbr.appendChild(mk('btn-sm bo','📤 バックアップ',()=>{
+    const blob = new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `okaimono-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    tst('バックアップ完了');
+  }));
+  dbr.appendChild(mk('btn-sm bd','🗑 リセット',()=>{
+    if(confirm('すべてのデータを削除して初期化しますか？\nこの操作は取り消せません。')){
+      localStorage.removeItem(KEY); location.reload();
+    }
+  }));
+  ds.appendChild(dbr);
+  cont.appendChild(ds);
+
+  cont.appendChild(el('div','version-txt','おかいもの帳 — Nurse Edition v4'));
+}
+
+/* ════════════════════════════════
+   MODAL HELPERS
+════════════════════════════════ */
+function showOv(){ ge('ov').classList.remove('hidden'); }
+function cl(){ ge('ov').classList.add('hidden'); ge('mo').innerHTML=''; }
+
+/* ════════════════════════════════
+   BOOT
+════════════════════════════════ */
+render();
+</script>
+</body>
+</html>
